@@ -1,49 +1,40 @@
-
-pipeline{
-
-   agent any
-
-	//create dockerhub credential in github with your dockerhub Username and Password/Token
-	environment {
-		DOCKERHUB_CREDENTIALS=credentials('dockerhub')
+pipeline {
+	agent any
+	tools {
+	    maven "MAVEN3"
+	    jdk "OracleJDK8"
 	}
-	
+
 	stages {
+	    stage('Fetch code') {
+            steps {
+               git branch: 'master', url: 'https://github.com/dexade2010/DevopsBasics.git'
+            }
 
-		stage('gitclone') {
-
-		      steps {
-		         git 'https://github.com/theitern/DevopsBasics.git'
-		      }
-		}
-		
-		stage('Build') {
-			steps {
-			
-			   sh 'docker build -t akinaregbesola/private:${BUILD_NUMBER} .'
-			}
-		}
-		
-		stage('Login') {
-		
-			steps {
-			   sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login --username akinaregbesola --password-stdin'    
-			}
-		}
-
-		stage('Push') {
-			
-			steps {
-			   sh 'docker push akinaregbesola/private:${BUILD_NUMBER}'
-			}
-		}
-		}
-	
-	post {
-	    always {
-		sh 'docker logout'
 	    }
-    }
 
+	    stage('Build'){
+	        steps{
+	           sh 'mvn install -DskipTests'
+	        }
+
+	        post {
+	           success {
+	              echo 'Now Archiving it...'
+	              archiveArtifacts artifacts: '**/target/*.war'
+	           }
+	        }
+	    }
+
+	    stage('UNIT TEST') {
+            steps{
+                sh 'mvn test'
+            }
+        }
+		stage('Checkstyle Analysis'){
+            steps {
+                sh 'mvn checkstyle:checkstyle'
+            }
+        }
+	}
 }
-
