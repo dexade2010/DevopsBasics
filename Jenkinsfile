@@ -76,7 +76,7 @@ pipeline {
                 nexusArtifactUploader(
                   nexusVersion: 'nexus3',
                   protocol: 'http',
-                  nexusUrl: '34.234.67.136:8081/',
+                  nexusUrl: 'http://34.234.67.136:8081/',
                   groupId: 'QA',
                   version: "${env.BUILD_ID}-${env.BUILD_TIMESTAMP}",
                   repository: 'dexade-repo',
